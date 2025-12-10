@@ -3,5 +3,11 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "astro",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
 }
