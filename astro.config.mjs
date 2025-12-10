@@ -1,4 +1,4 @@
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel/serverless';
 import react from '@astrojs/react';
 import { defineConfig } from 'astro/config';
 import dotenv from 'dotenv';
@@ -10,9 +10,7 @@ dotenv.config();
 export default defineConfig({
   site: 'https://example.com', // Change this to your actual Vercel domain after deployment
   output: 'server',
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: vercel(),
   integrations: [react()],
   vite: {
     ssr: {
