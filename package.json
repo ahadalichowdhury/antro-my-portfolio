@@ -2,6 +2,9 @@
   "name": "portfolio-website",
   "type": "module",
   "version": "1.0.0",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -10,7 +13,6 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^8.0.0",
     "@astrojs/react": "^3.0.0",
     "@astrojs/vercel": "^7.4.0",
     "astro": "^4.0.0",
