@@ -10,9 +10,7 @@ dotenv.config();
 export default defineConfig({
   site: 'https://example.com', // Change this to your actual Vercel domain after deployment
   output: 'server',
-  adapter: vercel({
-    runtime: 'nodejs20.x'
-  }),
+  adapter: vercel(),
   integrations: [react()],
   vite: {
     ssr: {
