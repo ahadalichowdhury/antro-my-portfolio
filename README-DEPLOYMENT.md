@@ -56,6 +56,13 @@ vercel
    - Any other variables you need
 4. Go to **Deployments** tab and click **"Redeploy"**
 
+### Step 3.5: Verify Node.js Version
+
+The project is configured to use Node.js 20.x (specified in `package.json` engines). Vercel will automatically use this version. If you need to change it:
+
+1. Go to **Settings** → **Functions**
+2. Verify Node.js Version is set to **20.x** (should auto-detect from package.json)
+
 ### Step 4: Update Site URL
 
 After deployment, you'll get a URL like `https://your-project.vercel.app`
