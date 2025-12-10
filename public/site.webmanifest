@@ -1,0 +1,19 @@
+{
+  "name": "S. M. Ahad Ali Chowdhury - Portfolio",
+  "short_name": "Ahad ali chowdhury Portfolio",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#007bff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

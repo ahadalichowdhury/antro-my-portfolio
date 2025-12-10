@@ -1,0 +1,47 @@
+---
+const currentPath = Astro.url.pathname;
+---
+
+<header class="header">
+  <div class="header-content">
+    <div class="logo-section">
+      <img
+        src="/resource/emojis.com panda-bear-full-body-scratching.png"
+        alt="Logo"
+        class="logo"
+      />
+      <div>
+        <h1>
+          <a
+            href="/"
+            style="color: inherit; text-decoration: none"
+            >S. M. Ahad Ali Chowdhury</a
+          >
+        </h1>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a>
+      <span class="separator">|</span>
+      <a href="/about" class={currentPath === '/about' ? 'active' : ''}>About</a>
+      <span class="separator">|</span>
+      <a href="/blog" class={currentPath.startsWith('/blog') ? 'active' : ''}>Blog</a>
+      <button
+        id="font-toggle"
+        class="font-toggle"
+        aria-label="Change font"
+        title="Monospace"
+      >
+        Aa
+      </button>
+      <button
+        id="theme-toggle"
+        class="theme-toggle"
+        aria-label="Toggle theme"
+      >
+        🌙
+      </button>
+    </nav>
+  </div>
+</header>
+

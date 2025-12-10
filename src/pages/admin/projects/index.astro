@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { requireAuth } from '../../../lib/session';
+import { getProjectsCollection } from '../../../lib/models';
+
+const session = await requireAuth(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+const projectsCollection = await getProjectsCollection();
+const projects = await projectsCollection
+  .find({})
+  .sort({ order: 1 })
+  .toArray();
+---
+
+<BaseLayout title="Projects Management - Admin">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+      <h1>Projects Management</h1>
+      <div style="display: flex; gap: 12px;">
+        <a
+          href="/admin/projects/new"
+          style="
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+          "
+        >
+          New Project
+        </a>
+        <a
+          href="/admin"
+          style="
+            padding: 10px 20px;
+            background-color: var(--border-color);
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 6px;
+          "
+        >
+          Back to Dashboard
+        </a>
+        <form method="POST" action="/admin/logout" style="display: inline;">
+          <button
+            type="submit"
+            style="
+              padding: 10px 20px;
+              background-color: #dc3545;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+            "
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 40px;">
+      <h2>All Projects</h2>
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+        {projects.length > 0 ? (
+          projects.map((project) => (
+            <div
+              style="
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <h3 style="margin-bottom: 8px;">
+                  {project.title} {!project.published && <span style="color: #999; font-size: 14px;">(Draft)</span>}
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 4px;">
+                  Order: {project.order}
+                </p>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 4px;">
+                  GitHub: <a href={project.githubLink} target="_blank" rel="noopener noreferrer" style="color: var(--accent-color);">{project.githubLink}</a>
+                </p>
+                {project.liveUrl && (
+                  <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">
+                    Live URL: <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" style="color: var(--accent-color);">{project.liveUrl}</a>
+                  </p>
+                )}
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">{project.description}</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <a
+                  href={`/admin/projects/${project._id}/edit`}
+                  style="
+                    padding: 8px 16px;
+                    background-color: var(--accent-color);
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                  "
+                >
+                  Edit
+                </a>
+                <form method="POST" action={`/admin/projects/${project._id}/delete`} style="display: inline;">
+                  <button
+                    type="submit"
+                    onclick="return confirm('Are you sure you want to delete this project?')"
+                    style="
+                      padding: 8px 16px;
+                      background-color: #dc3545;
+                      color: white;
+                      border: none;
+                      border-radius: 4px;
+                      cursor: pointer;
+                      font-size: 14px;
+                    "
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
+            No projects found. Create your first project!
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+

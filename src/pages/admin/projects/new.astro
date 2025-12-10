@@ -1,0 +1,188 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { requireAuth } from '../../../lib/session';
+
+const session = await requireAuth(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<BaseLayout title="New Project - Admin">
+  <div class="container">
+    <h1>Create New Project</h1>
+    <form method="POST" action="/admin/projects/new-api" id="project-form" style="margin-top: 30px;">
+      <div style="margin-bottom: 20px;">
+        <label for="title" style="display: block; margin-bottom: 8px; font-weight: 500;">Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500;">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          required
+          rows="4"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        ></textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="githubLink" style="display: block; margin-bottom: 8px; font-weight: 500;">GitHub Link</label>
+        <input
+          type="url"
+          id="githubLink"
+          name="githubLink"
+          required
+          placeholder="https://github.com/username/repo"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="liveUrl" style="display: block; margin-bottom: 8px; font-weight: 500;">Live URL (Optional)</label>
+        <input
+          type="url"
+          id="liveUrl"
+          name="liveUrl"
+          placeholder="https://example.com"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="order" style="display: block; margin-bottom: 8px; font-weight: 500;">Order</label>
+        <input
+          type="number"
+          id="order"
+          name="order"
+          required
+          min="1"
+          value="1"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+        <small style="color: var(--text-tertiary); font-size: 13px;">Display order (1, 2, 3, etc.)</small>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" name="published" id="published" value="true" />
+          <span>Publish immediately</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button
+          type="submit"
+          style="
+            padding: 12px 24px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+          "
+        >
+          Create Project
+        </button>
+        <a
+          href="/admin/projects"
+          style="
+            padding: 12px 24px;
+            background-color: var(--border-color);
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            display: inline-block;
+          "
+        >
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('project-form');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          console.log('[Frontend] Form submit intercepted');
+          
+          // Handle published checkbox - if unchecked, add hidden field
+          const publishedCheckbox = document.getElementById('published');
+          const existingHidden = form.querySelector('input[name="published"][type="hidden"]');
+          if (existingHidden) {
+            existingHidden.remove();
+          }
+          
+          if (!publishedCheckbox || !publishedCheckbox.checked) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'published';
+            hiddenField.value = 'false';
+            form.appendChild(hiddenField);
+            console.log('[Frontend] Published checkbox unchecked, adding hidden field');
+          } else {
+            console.log('[Frontend] Published checkbox checked');
+          }
+          
+          console.log('[Frontend] Allowing form to submit');
+        });
+      } else {
+        console.error('[Frontend] Form not found!');
+      }
+    });
+  </script>
+</BaseLayout>
+

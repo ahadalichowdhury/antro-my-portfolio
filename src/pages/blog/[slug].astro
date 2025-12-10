@@ -1,0 +1,347 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getPostsCollection } from '../../lib/models';
+import type { BlogPost } from '../../lib/models';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/blog', 404);
+}
+
+const postsCollection = await getPostsCollection();
+// Try to find by slug first, then by _id if slug matches
+let post = await postsCollection.findOne({ slug, published: true });
+if (!post) {
+  // Try finding by _id if slug is an ObjectId string
+  try {
+    const { ObjectId } = await import('mongodb');
+    if (ObjectId.isValid(slug)) {
+      post = await postsCollection.findOne({ _id: new ObjectId(slug) });
+      if (post) {
+        // Map old schema
+        post = {
+          ...post,
+          description: post.description || post.excerpt || '',
+          createdAt: post.createdAt || post.date || new Date(),
+          published: post.published !== undefined ? post.published : true,
+          slug: post.slug || post._id?.toString() || '',
+        };
+      }
+    }
+  } catch (e) {
+    // Ignore
+  }
+}
+
+if (!post) {
+  return Astro.redirect('/blog', 404);
+}
+
+const ogImage = post.coverImage || '/resource/emojis.com panda-bear-full-body-scratching.png';
+---
+
+<BaseLayout
+  title={`${post.title} - S. M. Ahad Ali Chowdhury`}
+  description={post.description}
+  ogImage={ogImage}
+  ogType="article"
+  canonicalUrl={`/blog/${post.slug}`}
+>
+  <div class="container">
+    <Header />
+
+    <!-- Blog Post -->
+    <article class="blog-post" data-post-id={post._id?.toString() || post.slug}>
+      <header class="post-header">
+        <h1>{post.title}</h1>
+        {post.coverImage && (
+          <div style="margin: 24px 0; width: 100%;">
+            <img 
+              src={post.coverImage} 
+              alt={post.title}
+              style="
+                width: 100%;
+                max-height: 500px;
+                object-fit: cover;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+              "
+            />
+          </div>
+        )}
+        <p class="post-date">
+          {new Date(post.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </p>
+        <div style="display: flex; gap: 16px; margin-top: 8px; font-size: 14px; color: var(--text-secondary);">
+          <span>👁️ {post.viewCount || 0} {post.viewCount === 1 ? 'view' : 'views'}</span>
+          {post.readingTimes && post.readingTimes.length > 0 && (
+            <span>
+              ⏱️ {Math.round(post.readingTimes.reduce((a: number, b: number) => a + b, 0) / post.readingTimes.length)}s average reading time
+            </span>
+          )}
+        </div>
+        {post.tags && post.tags.length > 0 && (
+          <div style="margin-top: 12px;">
+            {post.tags.map((tag) => (
+              <span
+                style="
+                  display: inline-block;
+                  padding: 4px 12px;
+                  margin-right: 8px;
+                  background-color: var(--accent-color);
+                  color: white;
+                  border-radius: 4px;
+                  font-size: 13px;
+                "
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </header>
+
+      <div class="post-content" set:html={post.content}></div>
+
+      <div class="post-footer">
+        <a href="/blog" class="back-link">← Back to all posts</a>
+      </div>
+    </article>
+
+    <Footer />
+  </div>
+
+  <script is:inline>
+    // Track post view and reading time
+    (function() {
+      let trackingInitialized = false;
+      
+      function initTracking() {
+        // Prevent double initialization
+        if (trackingInitialized) {
+          console.log('[Tracking] Already initialized, skipping...');
+          return;
+        }
+        
+        // Wait a bit for DOM to be fully ready (especially for SPA navigation)
+        setTimeout(() => {
+          console.log('[Tracking] Initializing tracking...');
+          
+          // Get postId from data attribute
+          const article = document.querySelector('.blog-post');
+          const postId = article ? article.getAttribute('data-post-id') : null;
+          
+          console.log('[Tracking] Article element:', article);
+          console.log('[Tracking] Post ID:', postId);
+          
+          if (!postId) {
+            console.error('[Tracking] Post ID not found, retrying in 500ms...');
+            // Retry once after a delay (for SPA navigation)
+            setTimeout(() => {
+              const retryArticle = document.querySelector('.blog-post');
+              const retryPostId = retryArticle ? retryArticle.getAttribute('data-post-id') : null;
+              if (retryPostId) {
+                console.log('[Tracking] Post ID found on retry:', retryPostId);
+                startTracking(retryPostId);
+              } else {
+                console.error('[Tracking] Post ID still not found after retry');
+              }
+            }, 500);
+            return;
+          }
+          
+          startTracking(postId);
+        }, 100);
+      }
+      
+      function startTracking(postId) {
+        if (trackingInitialized) return;
+        trackingInitialized = true;
+        
+        console.log('[Tracking] Starting tracking for postId:', postId);
+        
+        let startTime = Date.now();
+        let readingTime = 0;
+        let isActive = true;
+        let lastActiveTime = Date.now();
+        const INACTIVE_THRESHOLD = 30000; // 30 seconds of inactivity
+        const MIN_READING_TIME = 5; // Minimum 5 seconds to count as a read
+        let viewTracked = false; // Prevent duplicate view tracking
+
+        // Track initial view (only once)
+        function trackView() {
+          if (viewTracked) {
+            console.log('[Tracking] View already tracked, skipping...');
+            return;
+          }
+          
+          console.log('[Tracking] Tracking view for postId:', postId);
+          viewTracked = true;
+          
+          fetch('/api/track-view', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ postId }),
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            console.log('[Tracking] View tracked, response status:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('[Tracking] View tracking response:', data);
+            if (!data.success) {
+              console.warn('[Tracking] View tracking returned non-success:', data);
+            }
+          })
+          .catch(err => {
+            console.error('[Tracking] Failed to track view:', err);
+            viewTracked = false; // Allow retry on error
+          });
+        }
+
+      // Track reading time when user leaves
+      function trackReadingTime() {
+        if (!isActive) {
+          console.log('[Tracking] User inactive, skipping reading time tracking');
+          return;
+        }
+        
+        const now = Date.now();
+        const activeTime = (now - lastActiveTime) / 1000; // Convert to seconds
+        
+        if (activeTime >= MIN_READING_TIME) {
+          readingTime = Math.floor(activeTime);
+          console.log('[Tracking] Tracking reading time:', readingTime, 'seconds');
+          
+          // Use sendBeacon for more reliable tracking on page unload
+          const data = JSON.stringify({ postId, readingTime });
+          if (navigator.sendBeacon) {
+            const blob = new Blob([data], { type: 'application/json' });
+            const sent = navigator.sendBeacon('/api/track-view', blob);
+            console.log('[Tracking] Reading time sent via sendBeacon:', sent);
+          } else {
+            // Fallback to fetch
+            fetch('/api/track-view', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: data,
+              keepalive: true, // Keep request alive even after page unload
+            })
+            .then(response => {
+              console.log('[Tracking] Reading time tracked, response status:', response.status);
+              return response.json();
+            })
+            .then(data => console.log('[Tracking] Reading time tracking response:', data))
+            .catch(err => console.error('[Tracking] Failed to track reading time:', err));
+          }
+        } else {
+          console.log('[Tracking] Reading time too short:', activeTime, 'seconds, not tracking');
+        }
+      }
+
+      // Track user activity
+      function updateActivity() {
+        if (!isActive) {
+          isActive = true;
+          lastActiveTime = Date.now();
+        } else {
+          lastActiveTime = Date.now();
+        }
+      }
+
+      // Check for inactivity
+      function checkInactivity() {
+        const now = Date.now();
+        if (isActive && (now - lastActiveTime) > INACTIVE_THRESHOLD) {
+          isActive = false;
+        }
+      }
+
+      // Event listeners
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, updateActivity, { passive: true });
+      });
+
+      // Track initial view
+      trackView();
+
+      // Check inactivity every 10 seconds
+      setInterval(checkInactivity, 10000);
+
+      // Track reading time when user leaves
+      window.addEventListener('beforeunload', trackReadingTime);
+      window.addEventListener('pagehide', trackReadingTime);
+
+      // Also track reading time periodically (every 30 seconds) for long reads
+      setInterval(() => {
+        if (isActive) {
+          const activeTime = (Date.now() - lastActiveTime) / 1000;
+          if (activeTime >= 30) {
+            readingTime = Math.floor(activeTime);
+            console.log('[Tracking] Periodic reading time tracking:', readingTime, 'seconds');
+            fetch('/api/track-view', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ postId, readingTime }),
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              console.log('[Tracking] Periodic reading time tracked, response status:', response.status);
+              return response.json();
+            })
+            .then(data => {
+              console.log('[Tracking] Periodic reading time response:', data);
+              if (data.success) {
+                lastActiveTime = Date.now(); // Reset to avoid double counting
+              }
+            })
+            .catch(err => console.error('[Tracking] Failed to track periodic reading time:', err));
+          }
+        }
+      }, 30000);
+      }
+      
+      // Initialize tracking
+      // For direct page loads, initialize immediately
+      // For SPA navigation, script.js will call initializeBlogTracking()
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTracking);
+      } else {
+        // Check if this is SPA navigation (script.js loaded)
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && typeof initializeBlogTracking === 'function') {
+            // SPA navigation - let script.js handle it
+            console.log('[Tracking] SPA navigation detected, using script.js tracking');
+            // Reset flag so script.js can initialize
+            if (window.blogTrackingInitialized) {
+              window.blogTrackingInitialized = false;
+            }
+            initializeBlogTracking();
+          } else {
+            // Direct page load - use inline tracking
+            initTracking();
+          }
+        }, 100);
+      }
+    })();
+  </script>
+</BaseLayout>
+

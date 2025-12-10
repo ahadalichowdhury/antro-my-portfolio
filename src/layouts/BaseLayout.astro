@@ -1,0 +1,101 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: string;
+  canonicalUrl?: string;
+}
+
+const {
+  title,
+  description = "S. M. Ahad Ali Chowdhury - Software Engineer. Passionate about building scalable applications and open source projects.",
+  ogImage = "/resource/emojis.com panda-bear-full-body-scratching.png",
+  ogType = "website",
+  canonicalUrl,
+} = Astro.props;
+
+const siteUrl = Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://example.com");
+const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
+const canonical = canonicalUrl || Astro.url.pathname;
+const fullCanonical = canonical.startsWith("http") ? canonical : `${siteUrl}${canonical}`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={fullCanonical} />
+    
+    <!-- Favicon - Order matters for browser compatibility -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={`${siteUrl}${Astro.url.pathname}`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={fullOgImage} />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={`${siteUrl}${Astro.url.pathname}`} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={fullOgImage} />
+    
+    <link rel="stylesheet" href="/styles.css" />
+    <script is:inline>
+      // Apply theme immediately to prevent flash
+      (function () {
+        // Ensure document exists
+        if (typeof document === "undefined") return;
+        
+        let theme = localStorage.getItem("theme");
+        if (!theme) {
+          // Check system preference
+          if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+          ) {
+            theme = "dark";
+          } else {
+            theme = "light";
+          }
+        }
+        // Apply or remove dark-mode class based on theme
+        // document.documentElement always exists, but body might not yet
+        const html = document.documentElement;
+        if (!html) return;
+        
+        if (theme === "dark") {
+          html.classList.add("dark-mode");
+          // Body might not exist yet when script runs in head
+          if (document.body) {
+            document.body.classList.add("dark-mode");
+          }
+        } else {
+          html.classList.remove("dark-mode");
+          if (document.body) {
+            document.body.classList.remove("dark-mode");
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+    <script is:inline src="/script.js"></script>
+  </body>
+</html>
+

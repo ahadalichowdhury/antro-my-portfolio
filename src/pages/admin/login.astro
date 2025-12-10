@@ -1,0 +1,172 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Redirect if already logged in
+const session = await import('../../lib/session').then(m => m.requireAuth(Astro.cookies));
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<BaseLayout title="Admin Login - S. M. Ahad Ali Chowdhury">
+  <div class="container" style="max-width: 400px; margin: 100px auto;">
+    <h1 style="margin-bottom: 30px; text-align: center;">Admin Login</h1>
+    <div id="error-message" style="display: none; color: #dc3545; margin-bottom: 20px; padding: 12px; background-color: #f8d7da; border-radius: 6px;"></div>
+    <form id="login-form" style="display: flex; flex-direction: column; gap: 20px;">
+      <div>
+        <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500;">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+      <div>
+        <label for="password" style="display: block; margin-bottom: 8px; font-weight: 500;">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+      <button
+        type="submit"
+        id="login-button"
+        style="
+          padding: 12px 24px;
+          background-color: var(--accent-color);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 500;
+        "
+      >
+        Login
+      </button>
+    </form>
+  </div>
+  
+  <script is:inline>
+    console.log('[Frontend] Login script loaded');
+    
+    // Prevent form submission and handle with fetch
+    document.getElementById('login-form')?.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('[Frontend] Form submit intercepted');
+      
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const errorDiv = document.getElementById('error-message');
+      
+      if (!emailInput || !passwordInput) {
+        console.error('[Frontend] Form inputs not found');
+        return false;
+      }
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (!email || !password) {
+        console.log('[Frontend] Validation failed - empty fields');
+        if (errorDiv) {
+          errorDiv.textContent = 'Please enter both email and password';
+          errorDiv.style.display = 'block';
+        }
+        return false;
+      }
+      
+      // Clear any previous errors
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+      }
+      
+      console.log('[Frontend] Submitting login request for:', email);
+      
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
+      
+      try {
+        const response = await fetch('/admin/login-api', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        
+        console.log('[Frontend] Response received');
+        console.log('[Frontend] Status:', response.status);
+        
+        if (!response.ok) {
+          // Handle error response
+          const text = await response.text();
+          console.log('[Frontend] Error response text:', text);
+          
+          let errorText = 'Login failed';
+          try {
+            const data = JSON.parse(text);
+            errorText = data.error || errorText;
+          } catch (e) {
+            errorText = text || 'Login failed (Status: ' + response.status + ')';
+          }
+          
+          if (errorDiv) {
+            errorDiv.textContent = errorText;
+            errorDiv.style.display = 'block';
+          }
+          console.error('[Frontend] Login failed:', errorText);
+          return false;
+        }
+        
+        // Handle success response
+        const data = await response.json();
+        console.log('[Frontend] Login successful, response:', data);
+        
+        if (data.success && data.redirect) {
+          console.log('[Frontend] Redirecting to:', data.redirect);
+          window.location.href = data.redirect;
+          return false;
+        }
+        
+        // Fallback redirect
+        console.log('[Frontend] Redirecting to /admin');
+        window.location.href = '/admin';
+        return false;
+      } catch (error) {
+        console.error('[Frontend] Fetch error:', error);
+        if (errorDiv) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.style.display = 'block';
+        }
+      }
+      
+      return false;
+    });
+    
+    console.log('[Frontend] Submit handler attached');
+  </script>
+</BaseLayout>
+

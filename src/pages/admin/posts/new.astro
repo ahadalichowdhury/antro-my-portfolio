@@ -1,0 +1,249 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import RichTextEditor from '../../../components/RichTextEditor';
+import { requireAuth } from '../../../lib/session';
+
+const session = await requireAuth(Astro.cookies);
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<BaseLayout title="New Post - Admin">
+  <div class="container">
+    <h1>Create New Post</h1>
+    <form method="POST" action="/admin/posts/new-api" id="post-form" style="margin-top: 30px;">
+      <div style="margin-bottom: 20px;">
+        <label for="title" style="display: block; margin-bottom: 8px; font-weight: 500;">Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="slug" style="display: block; margin-bottom: 8px; font-weight: 500;">Slug</label>
+        <input
+          type="text"
+          id="slug"
+          name="slug"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+        <small style="color: var(--text-tertiary); font-size: 13px;">URL-friendly version of the title (e.g., "my-blog-post")</small>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500;">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          required
+          rows="3"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        ></textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="coverImage" style="display: block; margin-bottom: 8px; font-weight: 500;">Cover Image URL</label>
+        <input
+          type="url"
+          id="coverImage"
+          name="coverImage"
+          placeholder="https://example.com/image.jpg"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+        <small style="color: var(--text-tertiary); font-size: 13px;">Optional: URL to the cover image for this post</small>
+        <div id="image-preview" style="margin-top: 12px; display: none;">
+          <img id="preview-img" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 6px; border: 1px solid var(--border-color);" />
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="content" style="display: block; margin-bottom: 8px; font-weight: 500;">Content</label>
+        <RichTextEditor client:load />
+        <textarea
+          id="content"
+          name="content"
+          style="display: none;"
+        ></textarea>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label for="tags" style="display: block; margin-bottom: 8px; font-weight: 500;">Tags (comma-separated)</label>
+        <input
+          type="text"
+          id="tags"
+          name="tags"
+          style="
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+          "
+        />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" name="published" id="published" value="true" />
+          <span>Publish immediately</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button
+          type="submit"
+          style="
+            padding: 12px 24px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+          "
+        >
+          Create Post
+        </button>
+        <a
+          href="/admin"
+          style="
+            padding: 12px 24px;
+            background-color: var(--border-color);
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            display: inline-block;
+          "
+        >
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Wait for React component to mount, then sync on form submit
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('post-form');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          console.log('[Frontend] Form submit intercepted');
+          
+          // Sync content from rich text editor BEFORE form submits
+          const editor = document.querySelector('.ql-editor');
+          const contentField = document.getElementById('content');
+          
+          if (editor && contentField) {
+            const content = editor.innerHTML.trim();
+            contentField.value = content;
+            console.log('[Frontend] Content synced from editor:', content.substring(0, 50) + '...');
+            
+            // Validate content is not empty
+            if (!content || content === '<p><br></p>' || content === '<p></p>') {
+              e.preventDefault();
+              alert('Please enter some content for your blog post.');
+              console.error('[Frontend] Content is empty, preventing submission');
+              return false;
+            }
+          } else {
+            console.warn('[Frontend] Editor or content field not found');
+            if (!editor) {
+              e.preventDefault();
+              alert('Editor not loaded. Please wait a moment and try again.');
+              console.error('[Frontend] Editor not found, preventing submission');
+              return false;
+            }
+          }
+          
+          // Handle published checkbox - if unchecked, add hidden field
+          const publishedCheckbox = document.getElementById('published');
+          // Remove any existing hidden published field first
+          const existingHidden = form.querySelector('input[name="published"][type="hidden"]');
+          if (existingHidden) {
+            existingHidden.remove();
+          }
+          
+          if (!publishedCheckbox || !publishedCheckbox.checked) {
+            // Add a hidden field to explicitly set published to false
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'published';
+            hiddenField.value = 'false';
+            form.appendChild(hiddenField);
+            console.log('[Frontend] Published checkbox unchecked, adding hidden field');
+          } else {
+            console.log('[Frontend] Published checkbox checked');
+          }
+          
+          // Let the form submit naturally - don't prevent default
+          console.log('[Frontend] Allowing form to submit');
+        });
+      } else {
+        console.error('[Frontend] Form not found!');
+      }
+
+      // Image preview functionality
+      const coverImageInput = document.getElementById('coverImage');
+      const imagePreview = document.getElementById('image-preview');
+      const previewImg = document.getElementById('preview-img');
+      
+      if (coverImageInput && imagePreview && previewImg) {
+        coverImageInput.addEventListener('input', (e) => {
+          const url = e.target.value.trim();
+          if (url) {
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            previewImg.onerror = () => {
+              imagePreview.style.display = 'none';
+            };
+          } else {
+            imagePreview.style.display = 'none';
+          }
+        });
+      }
+    });
+  </script>
+</BaseLayout>
+
