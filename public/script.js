@@ -127,17 +127,8 @@ function getSystemFontPreference() {
     return "font-monospace"
   }
   
-  // Check for system font preferences via CSS
-  // Most systems don't expose this, so we'll default to monospace
-  // but we can check if user prefers reduced motion or other accessibility settings
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // Users who prefer reduced motion might prefer simpler fonts
-    // but this is just a heuristic, default to monospace
-    return "font-monospace"
-  }
-  
-  // Default to monospace (original design)
-  return "font-monospace"
+  // Default to sans-serif (common, familiar font)
+  return "font-sans-serif"
 }
 
 function initFont() {
@@ -311,7 +302,6 @@ async function loadPage(url) {
 function updateActiveNavLink() {
   // Get current page path
   const currentPath = window.location.pathname
-  const currentPage = currentPath.split('/').pop() || 'index.html'
   
   // Remove active class from all nav links
   document.querySelectorAll('.nav a').forEach(link => {
@@ -322,11 +312,20 @@ function updateActiveNavLink() {
   document.querySelectorAll('.nav a').forEach(link => {
     const href = link.getAttribute('href')
     if (href) {
-      const linkPage = href.split('/').pop()
-      // Check if it matches current page or if it's index.html and we're on root
-      if (linkPage === currentPage || 
-          (linkPage === 'index.html' && (currentPage === 'index.html' || currentPage === '')) ||
-          (currentPage.includes('blog-post.html') && linkPage === 'blog.html')) {
+      // Normalize paths (remove trailing slashes for comparison)
+      const normalizedHref = href === '/' ? '/' : href.replace(/\/$/, '')
+      const normalizedPath = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '')
+      
+      // Exact match for home page
+      if (normalizedHref === '/' && normalizedPath === '/') {
+        link.classList.add('active')
+      }
+      // Exact match for about page
+      else if (normalizedHref === '/about' && normalizedPath === '/about') {
+        link.classList.add('active')
+      }
+      // Match for blog - check if path starts with /blog
+      else if (normalizedHref === '/blog' && normalizedPath.startsWith('/blog')) {
         link.classList.add('active')
       }
     }
@@ -600,21 +599,5 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   })
 })
 
-window.addEventListener("scroll", () => {
-  const sections = document.querySelectorAll("section[id]")
-  let current = ""
-
-  sections.forEach((section) => {
-    const sectionTop = section.offsetTop
-    if (pageYOffset >= sectionTop - 60) {
-      current = section.getAttribute("id")
-    }
-  })
-
-  document.querySelectorAll(".nav a").forEach((link) => {
-    link.classList.remove("active")
-    if (link.getAttribute("href").slice(1) === current) {
-      link.classList.add("active")
-    }
-  })
-})
+// Removed scroll-based active nav link logic as it was interfering with page-based navigation
+// Active state is now determined by the current page path, not scroll position
