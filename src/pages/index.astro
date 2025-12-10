@@ -175,9 +175,14 @@ try {
                   </a>
                 </h3>
                 {project.liveUrl && (
-                  <span style="color: var(--text-secondary); font-size: 14px;">
-                    live url: <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" style="color: var(--accent-color);">{project.liveUrl}</a>
-                  </span>
+                  <a 
+                    href={project.liveUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style="color: var(--accent-color); font-size: 14px; text-decoration: none;"
+                  >
+                    Live URL
+                  </a>
                 )}
               </div>
               <p style="margin: 0;">
