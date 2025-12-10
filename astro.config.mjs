@@ -8,7 +8,7 @@ dotenv.config();
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com', // Change this to your actual Vercel domain after deployment
+  site: 'https://ahadchowdhury.site', // Change this to your actual Vercel domain after deployment
   output: 'server',
   adapter: vercel(),
   integrations: [react()],

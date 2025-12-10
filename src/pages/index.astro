@@ -238,5 +238,36 @@ try {
 
     <Footer />
   </div>
+  
+  <!-- Structured Data (JSON-LD) for Person/ProfilePage -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "S. M. Ahad Ali Chowdhury",
+    "jobTitle": "Software Engineer",
+    "url": Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://ahadchowdhury.site"),
+    "sameAs": [
+      "https://github.com/ahadalichowdhury",
+      "https://www.linkedin.com/in/ahadchowdhury/",
+      "https://www.instagram.com/ahadalichowdhury/",
+      "https://www.facebook.com/smahadalichowdhury1/"
+    ],
+    "email": "smahadalichowdhury@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "BD"
+    },
+    "knowsAbout": [
+      "Backend Development",
+      "Node.js",
+      "Golang",
+      "MongoDB",
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "CI/CD",
+      "Full-Stack Development"
+    ]
+  })} />
 </BaseLayout>
 

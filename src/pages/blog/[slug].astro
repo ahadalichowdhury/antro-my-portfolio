@@ -41,6 +41,10 @@ if (!post) {
 }
 
 const ogImage = post.coverImage || '/resource/emojis.com panda-bear-full-body-scratching.png';
+const siteUrl = Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://ahadchowdhury.site");
+const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
+const publishedDate = post.createdAt instanceof Date ? post.createdAt.toISOString() : new Date(post.createdAt).toISOString();
+const modifiedDate = post.updatedAt ? (post.updatedAt instanceof Date ? post.updatedAt.toISOString() : new Date(post.updatedAt).toISOString()) : publishedDate;
 ---
 
 <BaseLayout
@@ -119,5 +123,37 @@ const ogImage = post.coverImage || '/resource/emojis.com panda-bear-full-body-sc
   </div>
 
   <script is:inline src="/blog-tracking.js"></script>
+  
+  <!-- Structured Data (JSON-LD) for Article -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.description,
+    "image": fullOgImage,
+    "datePublished": publishedDate,
+    "dateModified": modifiedDate,
+    "author": {
+      "@type": "Person",
+      "name": "S. M. Ahad Ali Chowdhury",
+      "url": siteUrl,
+      "sameAs": [
+        "https://github.com/ahadalichowdhury",
+        "https://www.linkedin.com/in/ahadchowdhury/",
+        "https://www.instagram.com/ahadalichowdhury/",
+        "https://www.facebook.com/smahadalichowdhury1/"
+      ]
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "S. M. Ahad Ali Chowdhury",
+      "url": siteUrl
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${siteUrl}/blog/${post.slug}`
+    },
+    "keywords": post.tags ? post.tags.join(", ") : "software engineering, backend development"
+  })} />
 </BaseLayout>
 

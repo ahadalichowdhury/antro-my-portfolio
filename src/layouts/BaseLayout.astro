@@ -15,7 +15,7 @@ const {
   canonicalUrl,
 } = Astro.props;
 
-const siteUrl = Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://example.com");
+const siteUrl = Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://ahadchowdhury.site");
 const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
 const canonical = canonicalUrl || Astro.url.pathname;
 const fullCanonical = canonical.startsWith("http") ? canonical : `${siteUrl}${canonical}`;
@@ -31,6 +31,11 @@ const fullCanonical = canonical.startsWith("http") ? canonical : `${siteUrl}${ca
     <title>{title}</title>
     <meta name="title" content={title} />
     <meta name="description" content={description} />
+    <meta name="author" content="S. M. Ahad Ali Chowdhury" />
+    <meta name="keywords" content="software engineer, backend developer, Node.js, Golang, Go, MongoDB, AWS, Docker, Kubernetes, Bangladesh, full-stack developer, web development" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
     <link rel="canonical" href={fullCanonical} />
     
     <!-- Favicon - Order matters for browser compatibility -->
