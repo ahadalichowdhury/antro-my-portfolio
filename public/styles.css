@@ -121,6 +121,43 @@ body.font-mono-modern {
   line-height: 1.2;
 }
 
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  position: relative;
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background-color: var(--text-color);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover span {
+  background-color: var(--accent-color);
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -629,13 +666,64 @@ body.font-mono-modern {
   }
 
   .header-content {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 15px;
+    position: relative;
   }
 
   .header h1 {
     font-size: 24px;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .nav {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 200px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-top: 12px;
+  }
+
+  .nav.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav .separator {
+    display: none;
+  }
+
+  .nav a {
+    width: 100%;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .nav a:last-of-type {
+    border-bottom: none;
+  }
+
+  .nav a::after {
+    display: none;
   }
 
   .projects-section h2,
@@ -644,15 +732,13 @@ body.font-mono-modern {
     font-size: 22px;
   }
 
-  .nav {
-    font-size: 14px;
-    flex-wrap: wrap;
-  }
-
   .theme-toggle,
   .font-toggle {
     font-size: 16px;
     padding: 6px 10px;
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
   }
 
   body {

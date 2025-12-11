@@ -267,6 +267,17 @@ async function loadPage(url) {
       // Update URL without reload
       window.history.pushState({}, '', url)
       
+      // Close mobile menu if open
+      const nav = document.getElementById("main-nav")
+      const mobileMenuToggle = document.getElementById("mobile-menu-toggle")
+      if (nav && nav.classList.contains("active")) {
+        nav.classList.remove("active")
+        if (mobileMenuToggle) {
+          mobileMenuToggle.classList.remove("active")
+          mobileMenuToggle.setAttribute("aria-expanded", "false")
+        }
+      }
+      
       // Reinitialize scripts
       reinitializePage()
       
@@ -339,6 +350,11 @@ function reinitializePage() {
   
   // Update active navigation link
   updateActiveNavLink()
+  
+  // Reinitialize mobile menu with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    initMobileMenu()
+  }, 50)
   
   // Reattach event listeners
   const themeToggle = document.getElementById("theme-toggle")
@@ -566,6 +582,77 @@ window.addEventListener('popstate', (e) => {
   updateActiveNavLink()
 })
 
+// Mobile Menu Toggle
+let mobileMenuHandlers = {
+  toggleHandler: null,
+  linkHandlers: new Map(),
+  outsideClickHandler: null
+}
+
+function initMobileMenu() {
+  const mobileMenuToggle = document.getElementById("mobile-menu-toggle")
+  const nav = document.getElementById("main-nav")
+  
+  if (mobileMenuToggle && nav) {
+    // Remove old toggle handler if it exists
+    if (mobileMenuHandlers.toggleHandler) {
+      mobileMenuToggle.removeEventListener("click", mobileMenuHandlers.toggleHandler)
+    }
+    
+    // Create new toggle handler
+    mobileMenuHandlers.toggleHandler = () => {
+      const isActive = nav.classList.contains("active")
+      
+      if (isActive) {
+        nav.classList.remove("active")
+        mobileMenuToggle.classList.remove("active")
+        mobileMenuToggle.setAttribute("aria-expanded", "false")
+      } else {
+        nav.classList.add("active")
+        mobileMenuToggle.classList.add("active")
+        mobileMenuToggle.setAttribute("aria-expanded", "true")
+      }
+    }
+    
+    // Add new toggle handler
+    mobileMenuToggle.addEventListener("click", mobileMenuHandlers.toggleHandler)
+    
+    // Remove old link handlers
+    mobileMenuHandlers.linkHandlers.forEach((handler, link) => {
+      link.removeEventListener("click", handler)
+    })
+    mobileMenuHandlers.linkHandlers.clear()
+    
+    // Close menu when clicking on a link
+    nav.querySelectorAll("a").forEach(link => {
+      const handler = () => {
+        nav.classList.remove("active")
+        mobileMenuToggle.classList.remove("active")
+        mobileMenuToggle.setAttribute("aria-expanded", "false")
+      }
+      link.addEventListener("click", handler)
+      mobileMenuHandlers.linkHandlers.set(link, handler)
+    })
+    
+    // Remove old outside click handler if it exists
+    if (mobileMenuHandlers.outsideClickHandler) {
+      document.removeEventListener("click", mobileMenuHandlers.outsideClickHandler)
+    }
+    
+    // Close menu when clicking outside (only add once)
+    if (!mobileMenuHandlers.outsideClickHandler) {
+      mobileMenuHandlers.outsideClickHandler = (e) => {
+        if (nav && mobileMenuToggle && !nav.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+          nav.classList.remove("active")
+          mobileMenuToggle.classList.remove("active")
+          mobileMenuToggle.setAttribute("aria-expanded", "false")
+        }
+      }
+      document.addEventListener("click", mobileMenuHandlers.outsideClickHandler)
+    }
+  }
+}
+
 // Initialize theme and font on page load
 document.addEventListener("DOMContentLoaded", () => {
   initTheme()
@@ -573,6 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
   watchSystemThemeChanges()
   setupSPANavigation()
   updateActiveNavLink()
+  initMobileMenu()
   
   const themeToggle = document.getElementById("theme-toggle")
   if (themeToggle) {

@@ -20,7 +20,17 @@ const currentPath = Astro.url.pathname;
         </h1>
       </div>
     </div>
-    <nav class="nav">
+    <button
+      id="mobile-menu-toggle"
+      class="mobile-menu-toggle"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="nav" id="main-nav">
       <a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a>
       <span class="separator">|</span>
       <a href="/about" class={currentPath === '/about' ? 'active' : ''}>About</a>
