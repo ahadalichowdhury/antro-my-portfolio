@@ -13,7 +13,8 @@ export interface BlogPost {
   title: string;
   slug: string;
   description: string;
-  content: string; // HTML content from rich text editor
+  content: string; // HTML content from rich text editor or Markdown content
+  contentFormat?: "html" | "markdown"; // Format of the content: 'html' for rich text, 'markdown' for markdown
   coverImage?: string;
   tags: string[];
   createdAt: Date;

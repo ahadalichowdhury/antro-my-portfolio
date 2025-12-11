@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { getPostsCollection } from '../../lib/models';
 import type { BlogPost } from '../../lib/models';
+import { marked } from 'marked';
 
 const { slug } = Astro.params;
 
@@ -28,6 +29,7 @@ if (!post) {
           createdAt: post.createdAt || post.date || new Date(),
           published: post.published !== undefined ? post.published : true,
           slug: post.slug || post._id?.toString() || '',
+          contentFormat: post.contentFormat || 'html', // Default to html for old posts
         };
       }
     }
@@ -40,11 +42,20 @@ if (!post) {
   return Astro.redirect('/blog', 404);
 }
 
-const ogImage = post.coverImage || '/resource/emojis.com panda-bear-full-body-scratching.png';
+// Use coverImage only if it exists and is not empty, otherwise use default
+const ogImage = (post.coverImage && post.coverImage.trim() !== '') 
+  ? post.coverImage 
+  : '/resource/emojis.com panda-bear-full-body-scratching.png';
 const siteUrl = Astro.site?.href || (typeof Astro.url !== 'undefined' ? `${Astro.url.origin}` : "https://ahadchowdhury.site");
 const fullOgImage = ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}`;
 const publishedDate = post.createdAt instanceof Date ? post.createdAt.toISOString() : new Date(post.createdAt).toISOString();
 const modifiedDate = post.updatedAt ? (post.updatedAt instanceof Date ? post.updatedAt.toISOString() : new Date(post.updatedAt).toISOString()) : publishedDate;
+
+// Render content based on format
+const contentFormat = post.contentFormat || 'html';
+const renderedContent = contentFormat === 'markdown' 
+  ? await marked.parse(post.content)
+  : post.content;
 ---
 
 <BaseLayout
@@ -112,7 +123,7 @@ const modifiedDate = post.updatedAt ? (post.updatedAt instanceof Date ? post.upd
         )}
       </header>
 
-      <div class="post-content" set:html={post.content}></div>
+      <div class="post-content" set:html={renderedContent}></div>
 
       <div class="post-footer">
         <a href="/blog" class="back-link">← Back to all posts</a>

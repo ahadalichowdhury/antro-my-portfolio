@@ -117,8 +117,45 @@ if (!post) {
       </div>
 
       <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Content Format</label>
+        <div style="display: flex; gap: 20px; margin-bottom: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="contentFormat" value="html" id="format-html" checked={post.contentFormat !== 'markdown'} />
+            <span>Rich Text (HTML)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="contentFormat" value="markdown" id="format-markdown" checked={post.contentFormat === 'markdown'} />
+            <span>Markdown</span>
+          </label>
+        </div>
+        <input type="hidden" name="contentFormat" id="contentFormat" value={post.contentFormat || 'html'} />
+        
         <label for="content" style="display: block; margin-bottom: 8px; font-weight: 500;">Content</label>
-        <RichTextEditor client:load initialValue={post.content} />
+        {post.contentFormat === 'markdown' ? (
+          <>
+            <div id="rich-text-editor-container" style="display: none;">
+              <RichTextEditor client:load initialValue="" />
+            </div>
+            <textarea
+              id="markdown-editor"
+              name="markdownContent"
+              style="width: 100%; min-height: 400px; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 14px; background-color: var(--bg-color); color: var(--text-color); resize: vertical;"
+              placeholder="Write your blog post in Markdown format..."
+            >{post.content}</textarea>
+          </>
+        ) : (
+          <>
+            <div id="rich-text-editor-container">
+              <RichTextEditor client:load initialValue={post.content} />
+            </div>
+            <textarea
+              id="markdown-editor"
+              name="markdownContent"
+              style="display: none; width: 100%; min-height: 400px; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 14px; background-color: var(--bg-color); color: var(--text-color); resize: vertical;"
+              placeholder="Write your blog post in Markdown format..."
+            ></textarea>
+          </>
+        )}
         <textarea
           id="content"
           name="content"
@@ -190,33 +227,83 @@ if (!post) {
     // Wait for React component to mount, then sync on form submit
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('post-form');
+      const formatHtml = document.getElementById('format-html');
+      const formatMarkdown = document.getElementById('format-markdown');
+      const contentFormatHidden = document.getElementById('contentFormat');
+      const richTextContainer = document.getElementById('rich-text-editor-container');
+      const markdownEditor = document.getElementById('markdown-editor');
+      
+      // Handle format switching
+      function switchFormat(format: string) {
+        if (format === 'html') {
+          if (richTextContainer) richTextContainer.style.display = 'block';
+          if (markdownEditor) markdownEditor.style.display = 'none';
+          if (contentFormatHidden) contentFormatHidden.value = 'html';
+        } else {
+          if (richTextContainer) richTextContainer.style.display = 'none';
+          if (markdownEditor) markdownEditor.style.display = 'block';
+          if (contentFormatHidden) contentFormatHidden.value = 'markdown';
+        }
+      }
+      
+      if (formatHtml) {
+        formatHtml.addEventListener('change', () => {
+          if (formatHtml.checked) switchFormat('html');
+        });
+      }
+      
+      if (formatMarkdown) {
+        formatMarkdown.addEventListener('change', () => {
+          if (formatMarkdown.checked) switchFormat('markdown');
+        });
+      }
+      
       if (form) {
         form.addEventListener('submit', (e) => {
           console.log('[Frontend] Form submit intercepted');
           
-          // Sync content from rich text editor BEFORE form submits
-          const editor = document.querySelector('.ql-editor');
-          const contentField = document.getElementById('content');
+          const currentFormat = contentFormatHidden?.value || 'html';
+          const contentField = document.getElementById('content') as HTMLTextAreaElement;
           
-          if (editor && contentField) {
-            const content = editor.innerHTML.trim();
-            contentField.value = content;
-            console.log('[Frontend] Content synced from editor:', content.substring(0, 50) + '...');
+          if (currentFormat === 'html') {
+            // Sync content from rich text editor
+            const editor = document.querySelector('.ql-editor');
             
-            // Validate content is not empty
-            if (!content || content === '<p><br></p>' || content === '<p></p>') {
-              e.preventDefault();
-              alert('Please enter some content for your blog post.');
-              console.error('[Frontend] Content is empty, preventing submission');
-              return false;
+            if (editor && contentField) {
+              const content = editor.innerHTML.trim();
+              contentField.value = content;
+              console.log('[Frontend] Content synced from editor:', content.substring(0, 50) + '...');
+              
+              // Validate content is not empty
+              if (!content || content === '<p><br></p>' || content === '<p></p>') {
+                e.preventDefault();
+                alert('Please enter some content for your blog post.');
+                console.error('[Frontend] Content is empty, preventing submission');
+                return false;
+              }
+            } else {
+              console.warn('[Frontend] Editor or content field not found');
+              if (!editor) {
+                e.preventDefault();
+                alert('Editor not loaded. Please wait a moment and try again.');
+                console.error('[Frontend] Editor not found, preventing submission');
+                return false;
+              }
             }
           } else {
-            console.warn('[Frontend] Editor or content field not found');
-            if (!editor) {
-              e.preventDefault();
-              alert('Editor not loaded. Please wait a moment and try again.');
-              console.error('[Frontend] Editor not found, preventing submission');
-              return false;
+            // Sync content from markdown editor
+            const markdownContent = markdownEditor?.value.trim() || '';
+            if (contentField) {
+              contentField.value = markdownContent;
+              console.log('[Frontend] Markdown content synced:', markdownContent.substring(0, 50) + '...');
+              
+              // Validate markdown content is not empty
+              if (!markdownContent) {
+                e.preventDefault();
+                alert('Please enter some content for your blog post.');
+                console.error('[Frontend] Markdown content is empty, preventing submission');
+                return false;
+              }
             }
           }
           
@@ -228,7 +315,7 @@ if (!post) {
             existingHidden.remove();
           }
           
-          if (!publishedCheckbox || !publishedCheckbox.checked) {
+          if (!publishedCheckbox || !(publishedCheckbox as HTMLInputElement).checked) {
             // Add a hidden field to explicitly set published to false
             const hiddenField = document.createElement('input');
             hiddenField.type = 'hidden';

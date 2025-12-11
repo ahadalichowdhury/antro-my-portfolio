@@ -43,6 +43,8 @@ export const POST: APIRoute = async ({
     const content = formData.get("content")?.toString();
     const tags = formData.get("tags")?.toString() || "";
     const coverImage = formData.get("coverImage")?.toString() || "";
+    const contentFormat = (formData.get("contentFormat")?.toString() ||
+      "html") as "html" | "markdown";
     // Checkbox: if checked, value is "true", if unchecked, it might be "false" or not present
     const publishedValue = formData.get("published");
     const published = publishedValue === "true";
@@ -55,6 +57,7 @@ export const POST: APIRoute = async ({
       description?.substring(0, 50) + "..."
     );
     console.log("[Server] - content length:", content?.length || 0);
+    console.log("[Server] - contentFormat:", contentFormat);
     console.log("[Server] - tags:", tags);
     console.log("[Server] - coverImage:", coverImage);
     console.log("[Server] - published:", published);
@@ -97,6 +100,7 @@ export const POST: APIRoute = async ({
       slug,
       description,
       content,
+      contentFormat,
       tags: tagArray,
       published,
       updatedAt: new Date(),
