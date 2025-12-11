@@ -15,10 +15,14 @@
   --code-bg: #f5f5f5;
   --separator-color: #d0d0d0;
   --project-border: #e5e5e5;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 html.dark-mode,
@@ -34,8 +38,10 @@ body.dark-mode {
   --separator-color: #404040;
   --project-border: #2a2a2a;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -2px rgba(0, 0, 0, 0.4);
 }
 
 body {
@@ -136,7 +142,7 @@ body.font-mono-modern {
 }
 
 .nav a::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -294,6 +300,35 @@ body.font-mono-modern {
 
 .project h3 a:hover {
   color: var(--accent-color);
+}
+
+.project-title-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-title-link:hover {
+  color: var(--accent-hover);
+  text-decoration-thickness: 3px;
+}
+
+.project-title-link .link-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.project-title-link:hover .link-icon {
+  opacity: 1;
+  transform: rotate(-15deg);
 }
 
 .project p {
@@ -627,7 +662,7 @@ body.font-mono-modern {
   .post-header h1 {
     font-size: 28px;
   }
-  
+
   .blog-item,
   .blog-card {
     padding: 20px;
@@ -667,7 +702,7 @@ body.font-mono-modern {
   .post-header h1 {
     font-size: 24px;
   }
-  
+
   .blog-item,
   .blog-card {
     padding: 16px;

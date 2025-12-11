@@ -170,8 +170,22 @@ try {
             <div class="project">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px;">
                 <h3 style="margin: 0;">
-                  <a href={project.githubLink} target="_blank" rel="noopener noreferrer">
+                  <a href={project.githubLink} target="_blank" rel="noopener noreferrer" class="project-title-link">
                     {project.title}
+                    <svg
+                      class="link-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="16"
+                      height="16"
+                    >
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
                   </a>
                 </h3>
                 {project.liveUrl && (
