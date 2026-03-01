@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { notifyGoogleIndexing } from "../../../lib/indexing";
 import { getAdminsCollection, getPostsCollection } from "../../../lib/models";
 import { requireAuth } from "../../../lib/session";
 
@@ -111,8 +112,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       "[Server] Post inserted successfully! ID:",
       result.insertedId.toString()
     );
-    console.log("[Server] Redirecting to /admin");
 
+    // Notify Google to crawl immediately (only if published)
+    if (published) {
+      await notifyGoogleIndexing(slug);
+    }
+
+    console.log("[Server] Redirecting to /admin");
     return redirect("/admin", 302);
   } catch (error) {
     console.error("[Server] ERROR in POST /admin/posts/new:", error);

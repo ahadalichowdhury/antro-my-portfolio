@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { ObjectId } from "mongodb";
+import { notifyGoogleIndexing } from "../../../../lib/indexing";
 import { getPostsCollection } from "../../../../lib/models";
 import { requireAuth } from "../../../../lib/session";
 
@@ -129,8 +130,17 @@ export const POST: APIRoute = async ({
       "Modified:",
       updateResult.modifiedCount
     );
-    console.log("[Server] Redirecting to /admin");
 
+    // Notify Google: index the post if published, remove it if unpublished
+    if (slug) {
+      if (published) {
+        await notifyGoogleIndexing(slug, "URL_UPDATED");
+      } else {
+        await notifyGoogleIndexing(slug, "URL_DELETED");
+      }
+    }
+
+    console.log("[Server] Redirecting to /admin");
     return redirect("/admin", 302);
   } catch (error) {
     console.error("[Server] ERROR in POST /admin/posts/[id]/edit-api:", error);

@@ -28,13 +28,31 @@ export interface BlogPost {
 export interface Project {
   _id?: ObjectId;
   title: string;
-  description: string;
+  slug: string;           // URL slug e.g. "previewcloud"
+  description: string;    // Short summary shown on homepage card
   githubLink: string;
   liveUrl?: string;
-  order: number; // Display order (1, 2, 3, etc.)
+  order: number;
   published: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+
+  // Detail page fields
+  coverImage?: string;    // Hero image URL
+  tags?: string[];        // e.g. ["Go", "Docker", "AWS"]
+  challenge?: string;     // "The Challenge" section
+  solution?: string;      // "Our Solution" section
+  gallery?: string[];     // Array of image URLs for the gallery
+  results?: string[];     // Bullet points of outcomes/results
+  // Testimonial
+  testimonialText?: string;
+  testimonialAuthor?: string;
+  testimonialRole?: string;
+  // Meta info shown in the info bar
+  client?: string;        // e.g. "Personal Project"
+  projectDate?: string;   // e.g. "2024-2025"
+  duration?: string;      // e.g. "6 months"
+  category?: string;      // e.g. "Backend / DevOps"
 }
 
 export async function getAdminsCollection() {

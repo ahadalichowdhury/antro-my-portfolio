@@ -6,146 +6,145 @@ const session = await requireAuth(Astro.cookies);
 if (!session) {
   return Astro.redirect('/admin/login');
 }
+
+const inputStyle = `width:100%;padding:12px;border:1px solid var(--border-color);border-radius:6px;font-family:var(--font-family);background-color:var(--bg-color);color:var(--text-color);font-size:15px;`;
+const labelStyle = `display:block;margin-bottom:8px;font-weight:600;font-size:14px;`;
+const sectionStyle = `margin-bottom:36px;padding-bottom:36px;border-bottom:1px solid var(--border-color);`;
+const sectionTitleStyle = `font-size:18px;font-weight:700;margin-bottom:20px;color:var(--accent-color);`;
 ---
 
 <BaseLayout title="New Project - Admin">
-  <div class="container">
-    <h1>Create New Project</h1>
-    <form method="POST" action="/admin/projects/new-api" id="project-form" style="margin-top: 30px;">
-      <div style="margin-bottom: 20px;">
-        <label for="title" style="display: block; margin-bottom: 8px; font-weight: 500;">Title</label>
-        <input
-          type="text"
-          id="title"
-          name="title"
-          required
-          style="
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-          "
-        />
+  <div class="container" style="max-width:860px;">
+    <h1 style="margin-bottom:8px;">Create New Project</h1>
+    <p style="color:var(--text-secondary);margin-bottom:40px;">Fill in the details. Only Title, Slug, Description, and GitHub Link are required.</p>
+
+    <form method="POST" action="/admin/projects/new-api" id="project-form">
+
+      <!-- BASICS -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>📋 Basic Info</div>
+        <div style="margin-bottom:20px;">
+          <label for="title" style={labelStyle}>Title <span style="color:red">*</span></label>
+          <input type="text" id="title" name="title" required placeholder="e.g. PreviewCloud" style={inputStyle} />
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="slug" style={labelStyle}>Slug <span style="color:red">*</span></label>
+          <input type="text" id="slug" name="slug" required placeholder="e.g. previewcloud" style={inputStyle} />
+          <small style="color:var(--text-tertiary);font-size:13px;">URL-friendly name. Use lowercase letters, numbers, hyphens only. e.g. <code>preview-cloud</code></small>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="description" style={labelStyle}>Short Description <span style="color:red">*</span></label>
+          <textarea id="description" name="description" required rows="3" placeholder="One or two sentence summary shown on the homepage" style={inputStyle}></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div>
+            <label for="githubLink" style={labelStyle}>GitHub Link <span style="color:red">*</span></label>
+            <input type="url" id="githubLink" name="githubLink" required placeholder="https://github.com/..." style={inputStyle} />
+          </div>
+          <div>
+            <label for="liveUrl" style={labelStyle}>Live URL (Optional)</label>
+            <input type="url" id="liveUrl" name="liveUrl" placeholder="https://example.com" style={inputStyle} />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div>
+            <label for="coverImage" style={labelStyle}>Cover Image URL</label>
+            <input type="url" id="coverImage" name="coverImage" placeholder="https://..." style={inputStyle} />
+          </div>
+          <div>
+            <label for="tags" style={labelStyle}>Tags (comma-separated)</label>
+            <input type="text" id="tags" name="tags" placeholder="Go, Docker, AWS, PostgreSQL" style={inputStyle} />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:end;">
+          <div>
+            <label for="order" style={labelStyle}>Order</label>
+            <input type="number" id="order" name="order" required min="1" value="1" style={inputStyle} />
+          </div>
+          <div style="padding-bottom:2px;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;">
+              <input type="checkbox" name="published" id="published" value="true" style="width:18px;height:18px;cursor:pointer;" />
+              <span>Publish immediately</span>
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500;">Description</label>
-        <textarea
-          id="description"
-          name="description"
-          required
-          rows="4"
-          style="
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-          "
-        ></textarea>
+      <!-- META INFO -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>🗂️ Project Meta (shown in detail page info bar)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <label for="client" style={labelStyle}>Client / Owner</label>
+            <input type="text" id="client" name="client" placeholder="e.g. Personal Project" style={inputStyle} />
+          </div>
+          <div>
+            <label for="projectDate" style={labelStyle}>Date</label>
+            <input type="text" id="projectDate" name="projectDate" placeholder="e.g. 2024–2025" style={inputStyle} />
+          </div>
+          <div>
+            <label for="duration" style={labelStyle}>Duration</label>
+            <input type="text" id="duration" name="duration" placeholder="e.g. 6 months" style={inputStyle} />
+          </div>
+          <div>
+            <label for="category" style={labelStyle}>Category</label>
+            <input type="text" id="category" name="category" placeholder="e.g. Backend / DevOps" style={inputStyle} />
+          </div>
+        </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="githubLink" style="display: block; margin-bottom: 8px; font-weight: 500;">GitHub Link</label>
-        <input
-          type="url"
-          id="githubLink"
-          name="githubLink"
-          required
-          placeholder="https://github.com/username/repo"
-          style="
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-          "
-        />
+      <!-- CHALLENGE & SOLUTION -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>💡 Challenge & Solution</div>
+        <div style="margin-bottom:20px;">
+          <label for="challenge" style={labelStyle}>The Challenge</label>
+          <textarea id="challenge" name="challenge" rows="5" placeholder="Describe the problem or challenge this project solves..." style={inputStyle}></textarea>
+        </div>
+        <div>
+          <label for="solution" style={labelStyle}>Our Solution</label>
+          <textarea id="solution" name="solution" rows="5" placeholder="Describe how you solved it..." style={inputStyle}></textarea>
+        </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="liveUrl" style="display: block; margin-bottom: 8px; font-weight: 500;">Live URL (Optional)</label>
-        <input
-          type="url"
-          id="liveUrl"
-          name="liveUrl"
-          placeholder="https://example.com"
-          style="
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-          "
-        />
+      <!-- GALLERY -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>🖼️ Gallery Images</div>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">Add image URLs, one per line. These appear in the gallery grid on the project detail page.</p>
+        <textarea id="gallery" name="gallery" rows="5" placeholder="https://example.com/image1.png&#10;https://example.com/image2.png&#10;https://example.com/image3.png" style={inputStyle}></textarea>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label for="order" style="display: block; margin-bottom: 8px; font-weight: 500;">Order</label>
-        <input
-          type="number"
-          id="order"
-          name="order"
-          required
-          min="1"
-          value="1"
-          style="
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-          "
-        />
-        <small style="color: var(--text-tertiary); font-size: 13px;">Display order (1, 2, 3, etc.)</small>
+      <!-- RESULTS -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>📊 Results</div>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">Key outcomes/metrics, one per line. Each becomes a bullet point in the Results section.</p>
+        <textarea id="results" name="results" rows="5" placeholder="Reduced load time by 80%&#10;10,000+ users in first month&#10;99.9% uptime on AWS" style={inputStyle}></textarea>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <input type="checkbox" name="published" id="published" value="true" />
-          <span>Publish immediately</span>
-        </label>
+      <!-- TESTIMONIAL -->
+      <div style={sectionStyle}>
+        <div style={sectionTitleStyle}>💬 Testimonial (Optional)</div>
+        <div style="margin-bottom:20px;">
+          <label for="testimonialText" style={labelStyle}>Quote</label>
+          <textarea id="testimonialText" name="testimonialText" rows="3" placeholder="What did the client or user say?" style={inputStyle}></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <label for="testimonialAuthor" style={labelStyle}>Author Name</label>
+            <input type="text" id="testimonialAuthor" name="testimonialAuthor" placeholder="e.g. John Doe" style={inputStyle} />
+          </div>
+          <div>
+            <label for="testimonialRole" style={labelStyle}>Author Role / Title</label>
+            <input type="text" id="testimonialRole" name="testimonialRole" placeholder="e.g. CEO, StartupXYZ" style={inputStyle} />
+          </div>
+        </div>
       </div>
 
-      <div style="display: flex; gap: 12px;">
-        <button
-          type="submit"
-          style="
-            padding: 12px 24px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-          "
-        >
+      <!-- SUBMIT -->
+      <div style="display:flex;gap:12px;">
+        <button type="submit" style="padding:14px 32px;background-color:var(--accent-color);color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600;">
           Create Project
         </button>
-        <a
-          href="/admin/projects"
-          style="
-            padding: 12px 24px;
-            background-color: var(--border-color);
-            color: var(--text-color);
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 16px;
-            display: inline-block;
-          "
-        >
+        <a href="/admin/projects" style="padding:14px 24px;background-color:var(--border-color);color:var(--text-color);text-decoration:none;border-radius:8px;font-size:16px;display:inline-block;">
           Cancel
         </a>
       </div>
@@ -154,35 +153,43 @@ if (!session) {
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('project-form');
-      if (form) {
-        form.addEventListener('submit', (e) => {
-          console.log('[Frontend] Form submit intercepted');
-          
-          // Handle published checkbox - if unchecked, add hidden field
-          const publishedCheckbox = document.getElementById('published');
-          const existingHidden = form.querySelector('input[name="published"][type="hidden"]');
-          if (existingHidden) {
-            existingHidden.remove();
+      // Auto-generate slug from title
+      const titleInput = document.getElementById('title') as HTMLInputElement;
+      const slugInput = document.getElementById('slug') as HTMLInputElement;
+      let slugEdited = false;
+
+      if (slugInput) {
+        slugInput.addEventListener('input', () => { slugEdited = true; });
+      }
+      if (titleInput) {
+        titleInput.addEventListener('input', () => {
+          if (!slugEdited && slugInput) {
+            slugInput.value = titleInput.value
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .replace(/-+/g, '-')
+              .trim();
           }
-          
-          if (!publishedCheckbox || !publishedCheckbox.checked) {
+        });
+      }
+
+      // Handle published checkbox
+      const form = document.getElementById('project-form') as HTMLFormElement;
+      if (form) {
+        form.addEventListener('submit', () => {
+          const publishedCheckbox = document.getElementById('published') as HTMLInputElement;
+          const existingHidden = form.querySelector('input[name="published"][type="hidden"]');
+          if (existingHidden) existingHidden.remove();
+          if (!publishedCheckbox?.checked) {
             const hiddenField = document.createElement('input');
             hiddenField.type = 'hidden';
             hiddenField.name = 'published';
             hiddenField.value = 'false';
             form.appendChild(hiddenField);
-            console.log('[Frontend] Published checkbox unchecked, adding hidden field');
-          } else {
-            console.log('[Frontend] Published checkbox checked');
           }
-          
-          console.log('[Frontend] Allowing form to submit');
         });
-      } else {
-        console.error('[Frontend] Form not found!');
       }
     });
   </script>
 </BaseLayout>
-
