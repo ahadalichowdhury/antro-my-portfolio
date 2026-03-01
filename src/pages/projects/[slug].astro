@@ -31,17 +31,19 @@ const projectKeywords = [
   canonicalUrl={`/projects/${project.slug}`}
   keywords={projectKeywords}
 >
-  <div class="container">
-    <!-- Normal header always rendered the same way -->
+  <!-- Header inside normal container -->
+  <div class="container" style="padding-bottom: 0;">
     <Header />
+  </div>
 
-    <!-- Hero banner (only shown when coverImage is set) -->
-    {hasCover && (
-      <div
-        class="pd-hero-banner"
-        style={`background-image: url('${project.coverImage}')`}
-      >
-        <div class="pd-hero-banner-overlay">
+  <!-- Full-width cover image banner (OUTSIDE container, only when coverImage set) -->
+  {hasCover && (
+    <div
+      class="pd-hero-banner"
+      style={`background-image: url('${project.coverImage}')`}
+    >
+      <div class="pd-hero-banner-overlay">
+        <div class="pd-hero-content-inner">
           {project.tags && project.tags.length > 0 && (
             <div class="pd-tags">
               {project.tags.map((tag: string) => (
@@ -73,13 +75,17 @@ const projectKeywords = [
           </div>
         </div>
       </div>
-    )}
+    </div>
+  )}
 
-    <!-- When NO cover image: plain title/tags/buttons -->
+  <!-- Rest of content in normal container -->
+  <div class="container">
+
+    <!-- When NO cover image: show title/tags/buttons here instead -->
     {!hasCover && (
       <div class="pd-no-cover-header">
         {project.tags && project.tags.length > 0 && (
-          <div class="pd-tags">
+          <div class="pd-tags" style="margin-bottom:16px;">
             {project.tags.map((tag: string) => (
               <span class="pd-tag">{tag}</span>
             ))}
