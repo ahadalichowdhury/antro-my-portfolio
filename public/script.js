@@ -570,6 +570,17 @@ function setupSPANavigation() {
       return
     }
     
+    // Project detail pages have a different layout (hero, meta bar, dark section, etc.).
+    // Use full page load so content renders correctly and no DOM bleed when leaving.
+    const pathname = typeof window.location.pathname === 'string' ? window.location.pathname : ''
+    const linkPath = href.startsWith('http') ? (function() { try { return new URL(href).pathname } catch (_) { return href } })() : href
+    const isProjectDetailUrl = /^\/projects\/[^/]+\/?$/.test(linkPath)
+    const isOnProjectDetailPage = /^\/projects\/[^/]+\/?$/.test(pathname)
+    if (isProjectDetailUrl || isOnProjectDetailPage) {
+      window.location.href = href
+      return
+    }
+    
     // Intercept the click
     e.preventDefault()
     loadPage(href)

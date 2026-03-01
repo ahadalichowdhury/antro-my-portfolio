@@ -84,7 +84,7 @@ export default function RichTextEditor({
       <style>{`
         .ql-container {
           font-family: var(--font-family);
-          font-size: 16px;
+          font-size: 1rem;
           min-height: 300px;
         }
         .ql-editor {

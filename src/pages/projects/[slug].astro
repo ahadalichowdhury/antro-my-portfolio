@@ -11,6 +11,9 @@ const projectsCollection = await getProjectsCollection();
 const project = await projectsCollection.findOne({ slug, published: true }) as any;
 if (!project) return Astro.redirect('/');
 
+// Prevent bfcache from serving stale project content on other pages
+Astro.response.headers.set('Cache-Control', 'no-store');
+
 const siteUrl = (Astro.site?.href || `${Astro.url.origin}`).replace(/\/$/, '');
 const ogImage = project.coverImage || '/resource/emojis.com panda-bear-full-body-scratching.png';
 const hasCover = !!(project.coverImage && project.coverImage.trim());
@@ -31,31 +34,133 @@ const projectKeywords = [
   canonicalUrl={`/projects/${project.slug}`}
   keywords={projectKeywords}
 >
-  <!-- Header inside normal container -->
-  <div class="container" style="padding-bottom: 0;">
-    <Header />
-  </div>
+  <!-- Single root wrapper — avoids multiple top-level siblings that cause DOM bleed -->
+  <div class="pd-page-root">
 
-  <!-- Full-width cover image banner (OUTSIDE container, only when coverImage set) -->
-  {hasCover && (
-    <div
-      class="pd-hero-banner"
-      style={`background-image: url('${project.coverImage}')`}
-    >
-      <div class="pd-hero-banner-overlay">
-        <div class="pd-hero-content-inner">
+    <!-- Header in its own padded container -->
+    <div class="container pd-header-wrap">
+      <Header />
+    </div>
+
+    <!-- Full-width cover image banner (only when coverImage is set) -->
+    {hasCover && (
+      <div
+        class="pd-hero-banner"
+        style={`background-image: url('${project.coverImage}')`}
+      >
+        <div class="pd-hero-banner-overlay">
+          <div class="pd-hero-content-inner">
+            {project.tags && project.tags.length > 0 && (
+              <div class="pd-tags">
+                {project.tags.map((tag: string) => (
+                  <span class="pd-tag">{tag}</span>
+                ))}
+              </div>
+            )}
+            <h1 class="pd-title">{project.title}</h1>
+            <p class="pd-summary">{project.description}</p>
+            <div class="pd-actions">
+              {project.githubLink && (
+                <a href={project.githubLink} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-ghost">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  GitHub
+                </a>
+              )}
+              {project.liveUrl && (
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                  Live Demo
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <!-- Meta bar — full-width dark, light blue icons -->
+    {(project.client || project.projectDate || project.duration || project.category) && (
+      <div class={`pd-meta-bar${hasCover ? ' pd-meta-bar--flush' : ' pd-meta-bar--normal'}`}>
+        {hasCover ? (
+          <div class="pd-hero-content-inner">
+            {project.client && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+                <div><div class="pd-meta-label">Client</div><div class="pd-meta-value">{project.client}</div></div>
+              </div>
+            )}
+            {project.projectDate && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg></span>
+                <div><div class="pd-meta-label">Date</div><div class="pd-meta-value">{project.projectDate}</div></div>
+              </div>
+            )}
+            {project.duration && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span>
+                <div><div class="pd-meta-label">Duration</div><div class="pd-meta-value">{project.duration}</div></div>
+              </div>
+            )}
+            {project.category && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
+                <div><div class="pd-meta-label">Category</div><div class="pd-meta-value">{project.category}</div></div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {project.client && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+                <div><div class="pd-meta-label">Client</div><div class="pd-meta-value">{project.client}</div></div>
+              </div>
+            )}
+            {project.projectDate && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg></span>
+                <div><div class="pd-meta-label">Date</div><div class="pd-meta-value">{project.projectDate}</div></div>
+              </div>
+            )}
+            {project.duration && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span>
+                <div><div class="pd-meta-label">Duration</div><div class="pd-meta-value">{project.duration}</div></div>
+              </div>
+            )}
+            {project.category && (
+              <div class="pd-meta-item">
+                <span class="pd-meta-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
+                <div><div class="pd-meta-label">Category</div><div class="pd-meta-value">{project.category}</div></div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )}
+
+    <!-- No-cover fallback: title/tags/buttons inside container -->
+    {!hasCover && (
+      <div class="container">
+        <div class="pd-no-cover-header">
           {project.tags && project.tags.length > 0 && (
-            <div class="pd-tags">
+            <div class="pd-tags" style="margin-bottom:16px;">
               {project.tags.map((tag: string) => (
                 <span class="pd-tag">{tag}</span>
               ))}
             </div>
           )}
-          <h1 class="pd-title">{project.title}</h1>
-          <p class="pd-summary">{project.description}</p>
-          <div class="pd-actions">
+          <h1 style="font-size:2.25rem;font-weight:700;margin-bottom:14px;letter-spacing:-0.5px;">{project.title}</h1>
+          <p style="font-size:1rem;line-height:1.8;color:var(--text-secondary);margin-bottom:24px;max-width:680px;">{project.description}</p>
+          <div class="pd-actions" style="margin-bottom:40px;">
             {project.githubLink && (
-              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-ghost">
+              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-outline-normal">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                   <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
                 </svg>
@@ -75,158 +180,128 @@ const projectKeywords = [
           </div>
         </div>
       </div>
-    </div>
-  )}
+    )}
 
-  <!-- Rest of content in normal container -->
-  <div class="container">
+    <!-- Challenge & Solution — full-width dark section -->
+    {(project.challenge || project.solution) && (
+      <div class="pd-dark-section">
+        <div class="pd-two-col">
+          {project.challenge && (
+            <div class="pd-section">
+              <h2>The Challenge</h2>
+              <p>{project.challenge}</p>
+            </div>
+          )}
+          {project.solution && (
+            <div class="pd-section">
+              <h2>Our Solution</h2>
+              <p>{project.solution}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
 
-    <!-- When NO cover image: show title/tags/buttons here instead -->
-    {!hasCover && (
-      <div class="pd-no-cover-header">
-        {project.tags && project.tags.length > 0 && (
-          <div class="pd-tags" style="margin-bottom:16px;">
-            {project.tags.map((tag: string) => (
-              <span class="pd-tag">{tag}</span>
+    <!-- Main content container -->
+    <div class="container">
+
+      <!-- Gallery -->
+      {project.gallery && project.gallery.length > 0 && (
+        <div class="pd-gallery-section">
+          <h2>Gallery</h2>
+          <div class="pd-gallery">
+            {project.gallery.map((img: string, i: number) => (
+              <button type="button" class="pd-gallery-item pd-gallery-item-btn" data-gallery-src={img} data-gallery-alt={`${project.title} screenshot ${i + 1}`} aria-label={`View image ${i + 1} full size`}>
+                <img src={img} alt={`${project.title} screenshot ${i + 1}`} loading="lazy" />
+              </button>
             ))}
           </div>
-        )}
-        <h1 style="font-size:36px;font-weight:700;margin-bottom:14px;letter-spacing:-0.5px;">{project.title}</h1>
-        <p style="font-size:16px;line-height:1.8;color:var(--text-secondary);margin-bottom:24px;max-width:680px;">{project.description}</p>
-        <div class="pd-actions" style="margin-bottom:40px;">
-          {project.githubLink && (
-            <a href={project.githubLink} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-outline-normal">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-              </svg>
-              GitHub
-            </a>
+          <!-- Lightbox for full-size image -->
+          <div id="pd-gallery-lightbox" class="pd-gallery-lightbox" role="dialog" aria-modal="true" aria-label="Image preview" hidden>
+            <button type="button" class="pd-gallery-lightbox-close" aria-label="Close">×</button>
+            <div class="pd-gallery-lightbox-backdrop"></div>
+            <div class="pd-gallery-lightbox-content">
+              <img id="pd-gallery-lightbox-img" src="" alt="" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Results -->
+      {project.results && project.results.length > 0 && (
+        <div class="pd-results-section">
+          <h2>Results</h2>
+          <div class="pd-results-grid">
+            {project.results.map((result: string) => (
+              <div class="pd-result-item">
+                <span class="pd-result-icon">+</span>
+                <span>{result}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Testimonial -->
+      {project.testimonialText && (
+        <div class="pd-testimonial">
+          <div class="pd-testimonial-quote" aria-hidden="true">"</div>
+          <blockquote>{project.testimonialText}</blockquote>
+          {project.testimonialAuthor && (
+            <div class="pd-testimonial-author">
+              <strong>{project.testimonialAuthor}</strong>
+              {project.testimonialRole && (
+                <span class="pd-testimonial-role">{project.testimonialRole}</span>
+              )}
+            </div>
           )}
-          {project.liveUrl && (
-            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" class="pd-btn pd-btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
-              Live Demo
-            </a>
-          )}
         </div>
+      )}
+
+      <div class="post-footer" style="margin-top: 60px;">
+        <a href="/" data-astro-reload class="back-link">← Back to projects</a>
       </div>
-    )}
 
-    <!-- Meta Info Bar -->
-    {(project.client || project.projectDate || project.duration || project.category) && (
-      <div class="pd-meta-bar">
-        {project.client && (
-          <div class="pd-meta-item">
-            <span class="pd-meta-icon">👤</span>
-            <div>
-              <div class="pd-meta-label">Client</div>
-              <div class="pd-meta-value">{project.client}</div>
-            </div>
-          </div>
-        )}
-        {project.projectDate && (
-          <div class="pd-meta-item">
-            <span class="pd-meta-icon">📅</span>
-            <div>
-              <div class="pd-meta-label">Date</div>
-              <div class="pd-meta-value">{project.projectDate}</div>
-            </div>
-          </div>
-        )}
-        {project.duration && (
-          <div class="pd-meta-item">
-            <span class="pd-meta-icon">⏱️</span>
-            <div>
-              <div class="pd-meta-label">Duration</div>
-              <div class="pd-meta-value">{project.duration}</div>
-            </div>
-          </div>
-        )}
-        {project.category && (
-          <div class="pd-meta-item">
-            <span class="pd-meta-icon">🗂️</span>
-            <div>
-              <div class="pd-meta-label">Category</div>
-              <div class="pd-meta-value">{project.category}</div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
+      <Footer />
+    </div><!-- end .container -->
 
-    <!-- Challenge & Solution -->
-    {(project.challenge || project.solution) && (
-      <div class="pd-two-col">
-        {project.challenge && (
-          <div class="pd-section">
-            <h2>The Challenge</h2>
-            <p>{project.challenge}</p>
-          </div>
-        )}
-        {project.solution && (
-          <div class="pd-section">
-            <h2>Our Solution</h2>
-            <p>{project.solution}</p>
-          </div>
-        )}
-      </div>
-    )}
+  </div><!-- end .pd-page-root -->
 
-    <!-- Gallery -->
-    {project.gallery && project.gallery.length > 0 && (
-      <div class="pd-gallery-section">
-        <h2>Gallery</h2>
-        <div class="pd-gallery">
-          {project.gallery.map((img: string, i: number) => (
-            <div class="pd-gallery-item">
-              <img src={img} alt={`${project.title} screenshot ${i + 1}`} loading="lazy" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-    <!-- Results -->
-    {project.results && project.results.length > 0 && (
-      <div class="pd-results-section">
-        <h2>Results</h2>
-        <div class="pd-results-grid">
-          {project.results.map((result: string) => (
-            <div class="pd-result-item">
-              <span class="pd-result-icon">✦</span>
-              <span>{result}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-    <!-- Testimonial -->
-    {project.testimonialText && (
-      <div class="pd-testimonial">
-        <div class="pd-testimonial-quote">❝</div>
-        <blockquote>{project.testimonialText}</blockquote>
-        {project.testimonialAuthor && (
-          <div class="pd-testimonial-author">
-            <strong>{project.testimonialAuthor}</strong>
-            {project.testimonialRole && (
-              <span class="pd-testimonial-role">{project.testimonialRole}</span>
-            )}
-          </div>
-        )}
-      </div>
-    )}
-
-    <div class="post-footer" style="margin-top: 60px;">
-      <a href="/" class="back-link">← Back to projects</a>
-    </div>
-
-    <Footer />
-  </div>
+  {project.gallery && project.gallery.length > 0 && (
+    <script is:inline>
+      (function() {
+        var lightbox = document.getElementById('pd-gallery-lightbox');
+        var lightboxImg = document.getElementById('pd-gallery-lightbox-img');
+        var closeBtn = lightbox && lightbox.querySelector('.pd-gallery-lightbox-close');
+        var backdrop = lightbox && lightbox.querySelector('.pd-gallery-lightbox-backdrop');
+        document.querySelectorAll('.pd-gallery-item-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var src = this.getAttribute('data-gallery-src');
+            var alt = this.getAttribute('data-gallery-alt') || '';
+            if (lightbox && lightboxImg && src) {
+              lightboxImg.src = src;
+              lightboxImg.alt = alt;
+              lightbox.hidden = false;
+              document.body.style.overflow = 'hidden';
+            }
+          });
+        });
+        function closeLightbox() {
+          if (lightbox) {
+            lightbox.hidden = true;
+            document.body.style.overflow = '';
+          }
+        }
+        if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+        if (backdrop) backdrop.addEventListener('click', closeLightbox);
+        if (lightbox) {
+          lightbox.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+          });
+        }
+      })();
+    </script>
+  )}
 
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
