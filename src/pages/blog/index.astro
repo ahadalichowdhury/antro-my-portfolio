@@ -82,7 +82,9 @@ if (totalPages > 0) {
 
 <BaseLayout
   title="Blog - S. M. Ahad Ali Chowdhury"
-  description="Read the latest blog posts about software engineering, Go, Node.js, and full-stack development."
+  description="Read the latest blog posts about software engineering, Go, Node.js, backend development, cloud infrastructure, Docker, and Kubernetes by S. M. Ahad Ali Chowdhury."
+  canonicalUrl="/blog"
+  keywords="software engineering blog, Go programming, Node.js tutorials, backend development, Docker, Kubernetes, AWS, cloud infrastructure, software engineer Bangladesh, Ahad Chowdhury blog"
 >
   <div class="container">
     <Header />
@@ -218,5 +220,32 @@ if (totalPages > 0) {
 
     <Footer />
   </div>
+
+  <!-- Structured Data (JSON-LD) for Blog CollectionPage -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Blog - S. M. Ahad Ali Chowdhury",
+    "description": "Read the latest blog posts about software engineering, Go, Node.js, backend development, cloud infrastructure, Docker, and Kubernetes.",
+    "url": "https://ahadchowdhury.site/blog",
+    "author": {
+      "@type": "Person",
+      "name": "S. M. Ahad Ali Chowdhury",
+      "url": "https://ahadchowdhury.site",
+      "sameAs": [
+        "https://github.com/ahadalichowdhury",
+        "https://www.linkedin.com/in/ahadchowdhury/"
+      ]
+    },
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": posts.map((post, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `https://ahadchowdhury.site/blog/${post.slug}`,
+        "name": post.title
+      }))
+    }
+  })} />
 </BaseLayout>
 

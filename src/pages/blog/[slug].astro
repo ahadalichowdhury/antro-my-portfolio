@@ -56,6 +56,15 @@ const contentFormat = post.contentFormat || 'html';
 const renderedContent = contentFormat === 'markdown' 
   ? await marked.parse(post.content)
   : post.content;
+
+// Build per-article keywords from tags + author defaults
+const articleKeywords = [
+  ...(post.tags || []),
+  'S. M. Ahad Ali Chowdhury',
+  'Ahad Chowdhury',
+  'software engineer Bangladesh',
+  'backend developer',
+].join(', ');
 ---
 
 <BaseLayout
@@ -64,6 +73,7 @@ const renderedContent = contentFormat === 'markdown'
   ogImage={ogImage}
   ogType="article"
   canonicalUrl={`/blog/${post.slug}`}
+  keywords={articleKeywords}
 >
   <div class="container">
     <Header />
