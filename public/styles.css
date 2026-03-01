@@ -795,73 +795,41 @@ body.font-mono-modern {
   }
 }
 
-/* =====================
+/* ======================
    Project Detail Page  (pd- prefix)
-   ===================== */
+   ====================== */
 
-/* Full-width hero with cover image background */
-.project-hero-wrapper {
-  width: 100%;
+/* Cover-image banner — sits BELOW the header, inside .container */
+.pd-hero-banner {
+  width: calc(100% + 48px);   /* bleed out of container padding */
+  margin: 0 -24px 0;
   min-height: 280px;
-  background-color: #0d0d0d;
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
+  border-radius: 12px;
+  overflow: hidden;
   position: relative;
 }
 
-.project-hero-overlay {
-  width: 100%;
+.pd-hero-banner-overlay {
   min-height: 280px;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.72) 50%,
-    rgba(0, 0, 0, 0.92) 100%
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.65) 45%,
+    rgba(0, 0, 0, 0.90) 100%
   );
   display: flex;
   flex-direction: column;
-}
-
-.project-hero-inner {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding-bottom: 56px;
-}
-
-.project-hero-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   justify-content: flex-end;
-  padding-top: 0;
+  padding: 40px 24px 36px;
 }
 
-/* Override header text colour inside dark hero */
-.project-hero-wrapper .header {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  margin-bottom: 40px;
-}
-.project-hero-wrapper .header h1 a,
-.project-hero-wrapper .header h1 {
-  color: #ffffff;
-}
-.project-hero-wrapper .nav a {
-  color: rgba(255, 255, 255, 0.85);
-}
-.project-hero-wrapper .nav a:hover,
-.project-hero-wrapper .nav a.active {
-  color: var(--accent-color);
-}
-.project-hero-wrapper .theme-toggle,
-.project-hero-wrapper .font-toggle {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.2);
-  color: #ffffff;
-}
-.project-hero-wrapper .mobile-menu-toggle span {
-  background-color: #ffffff;
+/* No-cover fallback */
+.pd-no-cover-header {
+  padding-top: 16px;
+  margin-bottom: 8px;
 }
 
 /* Tags in hero */
